@@ -1,8 +1,14 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+//todo добавить логи
+//todo добавить jar plugin
 public class ClientHandler implements Runnable {
 
     public static List<ClientHandler> clientHandlers = new ArrayList<ClientHandler>();
@@ -11,17 +17,21 @@ public class ClientHandler implements Runnable {
     private BufferedWriter bufferedWriter;
     private String clientUserName;
 
+    private JsonNode messageTree;
+
     public ClientHandler(Socket socket) {
         try {
             this.socket = socket;
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())) ;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.clientUserName = bufferedReader.readLine();
+            String jsonMessage = bufferedReader.readLine();
+            ObjectMapper objectMapper = new ObjectMapper();
+            messageTree = objectMapper.readTree(jsonMessage);
+            this.clientUserName = messageTree.get("senderServerId").toString();
             clientHandlers.add(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -30,7 +40,7 @@ public class ClientHandler implements Runnable {
         while (socket.isConnected()) {
             try {
                 messageFromClient = bufferedReader.readLine();
-                broadcastMessage(messageFromClient);
+                sendMessage(messageFromClient);
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -38,13 +48,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void broadcastMessage(String messageToSend) {
-        String[] msgArr = messageToSend.split(" ");
+    public void sendMessage(String JSONMessage) {
+        String receiverServerId = messageTree.get("receiverServerId").toString();
         for (ClientHandler clientHandler : clientHandlers) {
             try {
-                if (clientHandler.clientUserName.equalsIgnoreCase(msgArr[1])) {
-                    clientHandler.bufferedWriter.write(msgArr[0] + " " +msgArr[2]);
-                    clientHandler.bufferedWriter.newLine();
+                if (clientHandler.clientUserName.equalsIgnoreCase(receiverServerId)) {
+                    clientHandler.bufferedWriter.write(JSONMessage);
                     clientHandler.bufferedWriter.flush();
                 }
             } catch (IOException e) {
@@ -53,13 +62,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-//    public void removeClientHandler() {
-//        clientHandlers.remove(this);
-//        broadcastMessage("SERVER: " + clientUserName + " has left!");
-//    }
-
     private void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        //removeClientHandler();
         try {
             if (bufferedReader != null) {
                 bufferedReader.close();

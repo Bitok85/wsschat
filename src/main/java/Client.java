@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -8,6 +10,8 @@ public class Client {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     public Client(Socket socket, String username) {
         try {
@@ -26,46 +30,65 @@ public class Client {
         String username = scanner.nextLine();
         Socket socket = new Socket("localhost", 1234);
         Client client = new Client(socket, username);
+        TestMessage testMessage = new TestMessage("Center", "Edge", "Text");
+        //ObjectMapper objectMapper = new ObjectMapper();
+        String jsonTestMessage = objectMapper.writeValueAsString(testMessage);
         client.listenForMessage();
-        client.sendMessage();
+        client.sendMessage(jsonTestMessage);
     }
 
-    public void sendMessage() {
+    public void sendMessage(String jsonMessage) {
         try {
             bufferedWriter.write(username);
             bufferedWriter.newLine();
             bufferedWriter.flush();
-
-            Scanner scanner = new Scanner(System.in);
-
             while (socket.isConnected()) {
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
+                bufferedWriter.write(jsonMessage);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            e.printStackTrace();
+            //todo logs
         }
 
     }
 
     public void listenForMessage() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String messageFromChat;
-                while (socket.isConnected()) {
-                    try {
-                        messageFromChat = bufferedReader.readLine();
-                        System.out.println(messageFromChat);
-                    } catch ( IOException e) {
-                        closeEverything(socket, bufferedReader, bufferedWriter);
+        Thread listenMsg = new Thread(
+                () -> {
+                    String jsonMessage;
+                    while (socket.isConnected()) {
+                        try {
+                            jsonMessage = bufferedReader.readLine();
+                            System.out.println(objectMapper.readValue(jsonMessage, TestMessage.class));
+                            //todo логика обработки
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            //todo log
+                        }
                     }
                 }
-            }
-        }).start();
+        );
+        listenMsg.start();
     }
+
+//    public void listenForMessage() {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                String messageFromChat;
+//                while (socket.isConnected()) {
+//                    try {
+//                        messageFromChat = bufferedReader.readLine();
+//                        System.out.println(messageFromChat);
+//                    } catch ( IOException e) {
+//                        closeEverything(socket, bufferedReader, bufferedWriter);
+//                    }
+//                }
+//            }
+//        }).start();
+//    }
 
     private void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         try {

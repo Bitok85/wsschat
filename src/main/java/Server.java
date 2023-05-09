@@ -18,7 +18,6 @@ public class Server {
                 ClientHandler clientHandler = new ClientHandler(socket);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
-
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -36,6 +35,7 @@ public class Server {
     }
 
     public static void main(String[] args) throws IOException {
+        //todo host and port
         ServerSocket serverSocket = new ServerSocket(1234);
         Server server = new Server(serverSocket);
         server.startServer();
