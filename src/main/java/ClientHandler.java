@@ -42,22 +42,26 @@ public class ClientHandler implements Runnable {
             try {
                 messageFromClient = bufferedReader.readLine();
                 sendMessage(messageFromClient);
+                log.info("Message {} has been sent", messageFromClient);
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
             }
         }
     }
-
+    //todo после тестов не забыть поменять регулярное выражение, т.к. объекты могут содержать "/"
     public void sendMessage(String jsonMessage) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode messageTree = mapper.readTree(jsonMessage);
-            String receiverServerId = messageTree.get("receiverServerId").toString();
+            String receiverServerId = messageTree.get("receiverServerId")
+                    .toString()
+                    .replaceAll("[^\\w+]", "");
 
             for (ClientHandler clientHandler : clientHandlers) {
-                if (clientHandler.clientUserName.equals(receiverServerId)) {
+                if (clientHandler.clientUserName.equalsIgnoreCase(receiverServerId)) {
                     clientHandler.bufferedWriter.write(jsonMessage);
+                    System.out.println(clientHandler.clientUserName);
                     bufferedWriter.newLine();
                     clientHandler.bufferedWriter.flush();
                 }
