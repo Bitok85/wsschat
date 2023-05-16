@@ -39,7 +39,7 @@ public class Client {
             Scanner scanner = new Scanner(System.in);
             String messageToSend = scanner.nextLine();
             while (socket.isConnected()) {
-                bufferedWriter.write(" " + messageToSend);
+                bufferedWriter.write(messageToSend);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
                 messageToSend = scanner.nextLine();
