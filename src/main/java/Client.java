@@ -37,12 +37,12 @@ public class Client {
             bufferedWriter.flush();
 
             Scanner scanner = new Scanner(System.in);
-
+            String messageToSend = scanner.nextLine();
             while (socket.isConnected()) {
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(messageToSend);
+                bufferedWriter.write(" " + messageToSend);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
+                messageToSend = scanner.nextLine();
             }
         } catch (IOException e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
