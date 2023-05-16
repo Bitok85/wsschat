@@ -40,7 +40,7 @@ public class Client {
 
             while (socket.isConnected()) {
                 String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
+                bufferedWriter.write(messageToSend);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
@@ -51,17 +51,14 @@ public class Client {
     }
 
     public void listenForMessage() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String messageFromChat;
-                while (socket.isConnected()) {
-                    try {
-                        messageFromChat = bufferedReader.readLine();
-                        System.out.println(messageFromChat);
-                    } catch ( IOException e) {
-                        closeEverything(socket, bufferedReader, bufferedWriter);
-                    }
+        new Thread(() -> {
+            String message;
+            while (socket.isConnected()) {
+                try {
+                    message = bufferedReader.readLine();
+                    System.out.println(message);
+                } catch (IOException e) {
+                    closeEverything(socket, bufferedReader, bufferedWriter);
                 }
             }
         }).start();

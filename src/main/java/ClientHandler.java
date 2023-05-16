@@ -1,3 +1,6 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -21,7 +24,6 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -30,7 +32,7 @@ public class ClientHandler implements Runnable {
         while (socket.isConnected()) {
             try {
                 messageFromClient = bufferedReader.readLine();
-                broadcastMessage(messageFromClient);
+                sendMessage(messageFromClient);
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -38,28 +40,28 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void broadcastMessage(String messageToSend) {
-        String[] msgArr = messageToSend.split(" ");
-        for (ClientHandler clientHandler : clientHandlers) {
-            try {
-                if (clientHandler.clientUserName.equalsIgnoreCase(msgArr[1])) {
-                    clientHandler.bufferedWriter.write(msgArr[0] + " " +msgArr[2]);
-                    clientHandler.bufferedWriter.newLine();
+    public void sendMessage(String jsonMessage) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode messageTree = mapper.readTree(jsonMessage);
+            String receiverServerId = messageTree.get("receiverServerId")
+                    .toString()
+                    .replace("\"", "");
+
+            for (ClientHandler clientHandler : clientHandlers) {
+                if (clientHandler.clientUserName.equalsIgnoreCase(receiverServerId)) {
+                    clientHandler.bufferedWriter.write(jsonMessage);
+                    bufferedWriter.newLine();
                     clientHandler.bufferedWriter.flush();
                 }
-            } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
             }
+        } catch (IOException e) {
+            closeEverything(socket, bufferedReader, bufferedWriter);
+
         }
     }
 
-//    public void removeClientHandler() {
-//        clientHandlers.remove(this);
-//        broadcastMessage("SERVER: " + clientUserName + " has left!");
-//    }
-
     private void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        //removeClientHandler();
         try {
             if (bufferedReader != null) {
                 bufferedReader.close();
