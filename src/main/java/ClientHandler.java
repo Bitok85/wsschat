@@ -1,3 +1,6 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -53,10 +56,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
-//    public void removeClientHandler() {
-//        clientHandlers.remove(this);
-//        broadcastMessage("SERVER: " + clientUserName + " has left!");
-//    }
+
+    public void removeClientHandler() {
+        clientHandlers.remove(this);
+        broadcastMessage("SERVER: " + clientUserName + " has left!");
+    }
 
     private void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         //removeClientHandler();

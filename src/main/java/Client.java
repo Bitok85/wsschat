@@ -51,17 +51,14 @@ public class Client {
     }
 
     public void listenForMessage() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String messageFromChat;
-                while (socket.isConnected()) {
-                    try {
-                        messageFromChat = bufferedReader.readLine();
-                        System.out.println(messageFromChat);
-                    } catch ( IOException e) {
-                        closeEverything(socket, bufferedReader, bufferedWriter);
-                    }
+        new Thread(() -> {
+            String messageFromChat;
+            while (socket.isConnected()) {
+                try {
+                    messageFromChat = bufferedReader.readLine();
+                    System.out.println(messageFromChat);
+                } catch ( IOException e) {
+                    closeEverything(socket, bufferedReader, bufferedWriter);
                 }
             }
         }).start();
