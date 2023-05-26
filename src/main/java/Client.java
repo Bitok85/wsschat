@@ -12,7 +12,7 @@ public class Client {
     public Client(Socket socket, String username) {
         try {
             this.socket = socket;
-            this.bufferedWriter =  new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())) ;
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())) ;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.username = username;
         } catch (IOException e) {

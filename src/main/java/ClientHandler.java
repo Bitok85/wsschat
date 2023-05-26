@@ -51,7 +51,7 @@ public class ClientHandler implements Runnable {
             for (ClientHandler clientHandler : clientHandlers) {
                 if (clientHandler.clientUserName.equalsIgnoreCase(receiverServerId)) {
                     clientHandler.bufferedWriter.write(jsonMessage);
-                    bufferedWriter.newLine();
+                    clientHandler.bufferedWriter.newLine();
                     clientHandler.bufferedWriter.flush();
                 }
             }
